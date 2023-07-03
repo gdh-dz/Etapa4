@@ -1,30 +1,30 @@
 using Microsoft.AspNetCore.Mvc;
-using BankAPI.Data;
+using BankAPI.Services;
 using BankAPI.Data.BankModels;
 
-namespace BankAPI.Controllers;
 
+namespace BankAPI.Controllers;
 [ApiController]
 [Route("[controller]")]
-public class AccountController : ControllerBase
+public class AccountController: ControllerBase
 {
-    private readonly BankContext _context;
-    public AccountController(BankContext context)
+    private readonly AccountService _service;
+    public AccountController(AccountService account)
     {
-        _context=context;
-
+       _service=account;
     }
 
     [HttpGet]
-    public IEnumerable<Account>Get()
+    public IEnumerable<Account> Get()
     {
-        return _context.Accounts.ToList();
+        return _service.GetAll();
     }
 
-     [HttpGet("{id}")]
+
+    [HttpGet("{id}")]
     public ActionResult<Account> GetById(int id)
     {
-       var Account = _context.Accounts.Find(id);
+       var Account = _service.GetById(id);
        if (Account is null)
         return NotFound();
 
@@ -34,49 +34,40 @@ public class AccountController : ControllerBase
     [HttpPost]
     public IActionResult Create(Account account)
     {
-        if (!_context.Clients.Any(c => c.Id == account.ClientId))
-            return BadRequest();
-            
-        _context.Accounts.Add(account);
-        _context.SaveChanges();
-        return CreatedAtAction(nameof(GetById), new {id =account.Id}, account);
+        var newAccount = _service.Create(account);
+        return CreatedAtAction(nameof(GetById), new {id =newAccount.Id}, newAccount);
     }
 
-      [HttpPut("{id}")]
+    [HttpPut("{id}")]
     public IActionResult Update(int id, Account account)
     {
        if (id!=account.Id)
             return BadRequest();
         
-        var existingAccount = _context.Accounts.Find(id);
-        if(existingAccount is null)
+        var AccountToUpdate = _service.GetById(id);
+
+        if(AccountToUpdate is not null)
+        {
+            _service.Update(id, account);
+            return NoContent();
+        }
+        else{
             return NotFound();
-        
-        existingAccount.AccountType = account.AccountType;
-        existingAccount.ClientId = account.ClientId;
-        existingAccount.Balance = account.Balance;
-
-        _context.SaveChanges();
-
-        return NoContent();
+        }
     }
 
-     [HttpDelete("{id}")]
+    [HttpDelete("{id}")]
     public IActionResult Delete(int id)
     {
-    var existingAccount = _context.Accounts.Find(id);
+    var AccountToDelete = _service.GetById(id);
 
-        if(existingAccount is null)
+        if(AccountToDelete is not null)
+        {
+            _service.Delete(id);
+            return Ok();
+        }
+        else{
             return NotFound();
-        
-    _context.Accounts.Remove(existingAccount);
-    _context.SaveChanges();
-
-    return Ok();
+        }
     }
-
-
-
-
-
 }

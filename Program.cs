@@ -14,6 +14,7 @@ builder.Services.AddSqlServer<BankContext>(builder.Configuration.GetConnectionSt
 
 //service layer
 builder.Services.AddScoped<ClientService>();
+builder.Services.AddScoped<AccountService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

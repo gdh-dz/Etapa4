@@ -30,7 +30,7 @@ public class AccountService
 
     public void Update(int id, Account account)
     {    
-        var existingAccount = GetById(id);
+        var existingAccount = GetById(account.Id);
 
         if (existingAccount is not null)
         {
